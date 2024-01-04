@@ -14,6 +14,10 @@ struct ContentView: View {
     @State private var showingScore = false
     @State private var scoreTitle = ""
     
+    @State private var userScore = 0
+    @State private var count = 0
+    @State private var maxCount = 10
+    
     var body: some View {
         ZStack {
             RadialGradient(stops: [
@@ -28,7 +32,7 @@ struct ContentView: View {
                 Text("Guess The Flag")
                     .font(.largeTitle.bold())
                     .foregroundStyle(.white)
-                
+                Spacer()
                 VStack(spacing: 15) {
                     VStack {
                         Text("Tap the flag of")
@@ -55,37 +59,58 @@ struct ContentView: View {
                 
                 Spacer()
                 Spacer()
-                
-                Text("Score: ???")
-                    .foregroundStyle(.white)
-                    .font(.title.bold())
-                
+                VStack{
+                    Text("Score: \(userScore)")
+                    if count < maxCount{
+                        Text("Question \(count + 1) out of \(maxCount)")
+                    }
+                }
+                .foregroundStyle(.white)
+                .font(.title.bold())
                 Spacer()
             }
             .padding()
         }
         .alert(scoreTitle, isPresented: $showingScore) {
+            if count > maxCount {
+                Button("Continue", action:
+                        reset)
+            }
             Button("Continue", action: askQuestion)
         } message: {
-            Text("Your score is ???")
+            Text("Your score is \(userScore)")
         }
     }
+    
     func flagTapped(_ number: Int) {
         if number == correctAnswer {
-            scoreTitle = "Correct"
+            userScore += 10
+            scoreTitle = "Correct!"
         } else {
-            scoreTitle = "Wrong"
+            userScore -= 5
+            scoreTitle = "Wrong! That's the flag of \(countries[number])."
         }
         showingScore = true
+        count += 1
+        
+        if count == maxCount {
+            scoreTitle = "Game over!"
+        }
     }
     
     func askQuestion() {
         countries.shuffle()
         correctAnswer = Int.random(in: 0...2)
+        if count == maxCount {
+            reset()
+        }
     }
     
+    func reset() {
+        count = 0
+        userScore = 0
+    }
 }
-
 #Preview {
     ContentView()
 }
